@@ -3,7 +3,7 @@
 #pragma once
 
 #include <array>
-#include <string>
+#include <string_view>
 
 #include "type.h"
 #include "constants.h"
@@ -30,7 +30,7 @@ struct Position
     void set_start_pos();
     void update_occupancies();
     void set_square(Piece piece);
-    void parse_fen(const std::string& fen);
+    void parse_fen(const std::string_view fen);
     Bitboard get_bitboard (Piece piece) const;
     
     void clear_board();
