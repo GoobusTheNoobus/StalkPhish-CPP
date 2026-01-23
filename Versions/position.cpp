@@ -28,7 +28,7 @@ void Position::set_start_pos () {
     
 }
 
-void Position::parse_fen(const std::string& fen) {
+void Position::parse_fen(const std::string_view fen) {
     clear_board();
 
     // TO-DO PARSE FEN
