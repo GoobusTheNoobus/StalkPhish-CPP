@@ -25,19 +25,23 @@ namespace Bitboards {
         return rook_table[square][Sliders::hash_rook(square, occupancy)];
     }
 
-    // pretty print a bitboard
-    void pretty_print(Bitboard bb) {
-        std::cout << "\n  +-----------------+\n";
+    // pretty a bitboard
+    std::string to_string(Bitboard bb) {
+        std::ostringstream string;
+
+        string << "\n  +-----------------+\n";
         for (int rank = 7; rank >= 0; rank--) {
-            std::cout << rank + 1 << " | ";
+            string << rank + 1 << " | ";
             for (int file = 0; file < 8; file++) {
                 int square = rank * 8 + file;
-                std::cout << (((bb >> square) & 1ULL) ? "O " : ". ");
+                string << (((bb >> square) & 1ULL) ? "O " : ". ");
             }
-            std::cout << "|\n";
+            string << "|\n";
         }
-        std::cout << "  +-----------------+\n";
-        std::cout << "    a b c d e f g h\n\n";
+        string << "  +-----------------+\n";
+        string << "    a b c d e f g h\n\n";
+
+        return string.str();
     }
 
     // initialize
@@ -120,7 +124,7 @@ namespace Leapers{
                    continue;
             }
 
-            mask |= 1ULL << parse_square(r, f);
+            mask |= 1ULL << (r << 3 | f);
 
         }
 
@@ -142,7 +146,7 @@ namespace Leapers{
                 continue;
             }
 
-            mask |= 1ULL << parse_square(r, f);
+            mask |= 1ULL << (r << 3 | f);
 
         }
 
@@ -169,7 +173,7 @@ namespace Leapers{
                 continue;
             }
 
-            mask |= 1ULL << parse_square(r, f);
+            mask |= 1ULL << (r << 3 | f);
 
         }
 
@@ -195,7 +199,7 @@ namespace Leapers{
                 continue;
             }
 
-            mask |= 1ULL << parse_square(r, f);
+            mask |= 1ULL << (r << 3 | f);
 
         }
 
@@ -437,6 +441,36 @@ namespace Sliders {
 
 
     
+
+    
+
+    void pc_bishop_attacks (Square square) {
+        for (int i = 0; i < (1 << bishop_relevancy[square]); i++) {
+            Bitboard blockers = index_to_blocker(i, bishop_masks[square]);
+
+            Bitboard attacks = raycast_bishop(square, blockers);
+
+            Bitboards::bishop_table[square][hash_bishop(square, blockers)] = attacks;
+        }
+    }
+
+    
+
+    void pc_rook_attacks (Square square) {
+        for (int i = 0; i < (1 << rook_relevancy[square]); i++) {
+            Bitboard blockers = index_to_blocker(i, rook_masks[square]);
+
+            Bitboard attacks = raycast_rook(square, blockers);
+
+            Bitboards::rook_table[square][hash_rook(square, blockers)] = attacks;
+        }
+    }
+
+
+    
+
+
+}
 
 
 }
