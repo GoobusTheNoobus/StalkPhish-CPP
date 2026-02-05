@@ -142,9 +142,9 @@ void MoveGen::generate_knight_moves (const Position& pos, MoveList& list) {
 
     while (pieces) {
         int from = __builtin_ctzll (pieces);
-        Square squEnum = Square(from);
+        Square square_enum = Square(from);
 
-        Bitboard move_bb = Bitboards::get_knight_attacks(squEnum) & ~friendlies;
+        Bitboard move_bb = Bitboards::get_knight_attacks(square_enum) & ~friendlies;
 
         while (move_bb) {
             Square to = Square(__builtin_ctzll(move_bb));
@@ -174,9 +174,9 @@ void MoveGen::generate_king_moves (const Position& pos, MoveList& list) {
 
     while (pieces) {
         int from = __builtin_ctzll (pieces);
-        Square squEnum = Square(from);
+        Square square_enum = Square(from);
 
-        Bitboard move_bb = Bitboards::get_king_attacks(squEnum) & ~friendlies;
+        Bitboard move_bb = Bitboards::get_king_attacks(square_enum) & ~friendlies;
 
         while (move_bb) {
             Square to = Square(__builtin_ctzll(move_bb));
@@ -216,9 +216,9 @@ void MoveGen::generate_bishop_moves (const Position& pos, MoveList& list) {
     while (pieces) {
 
         int from = __builtin_ctzll (pieces);
-        Square squEnum = Square(from);
+        Square square_enum = Square(from);
 
-        Bitboard move_bb = Bitboards::get_bishop_attacks(squEnum, pos.board.occupancy) & ~friendlies;
+        Bitboard move_bb = Bitboards::get_bishop_attacks(square_enum, pos.board.occupancy) & ~friendlies;
 
         while (move_bb) {
             Square to = Square(__builtin_ctzll(move_bb));
@@ -249,9 +249,9 @@ void MoveGen::generate_rook_moves (const Position& pos, MoveList& list) {
     while (pieces) {
 
         int from = __builtin_ctzll (pieces);
-        Square squEnum = Square(from);
+        Square square_enum = Square(from);
 
-        Bitboard move_bb = Bitboards::get_rook_attacks(squEnum, pos.board.occupancy) & ~friendlies;
+        Bitboard move_bb = Bitboards::get_rook_attacks(square_enum, pos.board.occupancy) & ~friendlies;
 
         while (move_bb) {
             Square to = Square(__builtin_ctzll(move_bb));
@@ -282,9 +282,9 @@ void MoveGen::generate_queen_moves (const Position& pos, MoveList& list) {
     while (pieces) {
 
         int from = __builtin_ctzll (pieces);
-        Square squEnum = Square(from);
+        Square square_enum = Square(from);
 
-        Bitboard move_bb = (Bitboards::get_bishop_attacks(squEnum, pos.board.occupancy) | Bitboards::get_rook_attacks(squEnum, pos.board.occupancy)) & ~friendlies;
+        Bitboard move_bb = (Bitboards::get_bishop_attacks(square_enum, pos.board.occupancy) | Bitboards::get_rook_attacks(square_enum, pos.board.occupancy)) & ~friendlies;
 
         while (move_bb) {
             Square to = Square(__builtin_ctzll(move_bb));
