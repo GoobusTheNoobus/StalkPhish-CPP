@@ -19,6 +19,8 @@ namespace BitFish {
     extern uint64_t nodes;
     extern Position current_pos;
 
+    
+
     void go (int depth_lim, int move_time);
     void stop ();
     bool should_stop () ;
@@ -29,9 +31,7 @@ namespace BitFish {
     std::pair<Move, int> get_best_move (Position& pos, int max_depth, Move pv);
 
 
-    constexpr std::array<int, PIECE_NUM + 1> material = {
-        100, 300, 320, 500, 900, 0, -100, -300, -320, -500, -900, 0, 0
-    };
+    
     constexpr std::array<int, BOARD_SIZE> pawn_table_mg = {
         0,  0,  0,  0,  0,  0,  0,  0,
         5, 10, 10,-15,-15, 10, 10,  5,

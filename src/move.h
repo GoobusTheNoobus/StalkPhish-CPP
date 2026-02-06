@@ -3,6 +3,7 @@
 #include "position.h"
 #include <vector>
 #include <bitset>
+#include <algorithm>
 
 
 #define MOVE(from, to, moved, captured, flag) \
@@ -98,14 +99,17 @@ struct MoveList {
 
     // basic pv sort only now
     inline void sort (Move move) {
-        for (int i = 0; i < size; ++i) {
-            if (list[i] == move) {
-                Move tmp = list[0];
-                list[i] = tmp;
-                list[0] = move;
-                return;
-            }
-        }
+        std::stable_sort (list.begin(), list.begin() + size, [move](Move a, Move b){
+            int score_a = (a == move) ? (std::abs(material[CAPTURED(a)]) - std::abs(material[MOVED(a)])) : 10000;
+            int score_b = (b == move) ? (std::abs(material[CAPTURED(b)]) - std::abs(material[MOVED(b)])) : 10000;
+
+            if (FLAG(a) >= MOVE_NPROMO_FLAG) score_a += promo_flag_bonus[FLAG(a) - MOVE_NPROMO_FLAG];
+            if (FLAG(b) >= MOVE_NPROMO_FLAG) score_b += promo_flag_bonus[FLAG(b) - MOVE_NPROMO_FLAG];
+            
+            return score_a > score_b;
+        });
+
+        
     }
 
     inline void print () {

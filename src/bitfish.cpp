@@ -119,6 +119,7 @@ namespace BitFish {
         alpha = std::max (alpha, stand_pat);
 
         MoveList moves = MoveGen::generate_moves (pos);
+        moves.sort(-1);
 
         Color side_moving = pos.game_info.side_to_move;
 
@@ -128,6 +129,12 @@ namespace BitFish {
             Move move = moves[i];
 
             bool is_noisy = (CAPTURED(move) != NO_PIECE) || (FLAG(move) >= MOVE_NPROMO_FLAG);
+            
+            // deltaprune
+
+            int gain = std::abs(material[CAPTURED(move)])  - std::abs(material[MOVED(move)] + 100);
+
+            if (stand_pat + gain + 200 < alpha) continue;
 
             if (!is_noisy) continue;
 
@@ -171,6 +178,7 @@ namespace BitFish {
         }
 
         MoveList moves = MoveGen::generate_moves(pos);
+        moves.sort(-1);
 
         Color color_moving = pos.game_info.side_to_move;
 

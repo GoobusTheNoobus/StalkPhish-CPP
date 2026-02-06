@@ -15,6 +15,14 @@ constexpr int NO_MOVE = -1;
 
 const std::string STARTING_POS_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+constexpr std::array<int, PIECE_NUM + 1> material = {
+    100, 300, 320, 500, 900, 0, -100, -300, -320, -500, -900, 0, 0
+};
+
+constexpr std::array<int, 4> promo_flag_bonus = {
+    200, 220, 400, 800
+};
+
 const std::array<char, PIECE_NUM + 1> PIECE_TO_CHAR = {
     'P',
     'N',
