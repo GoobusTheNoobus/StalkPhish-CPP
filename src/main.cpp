@@ -10,25 +10,27 @@
 using namespace std::chrono;
 
 
-int main () {
+int main() {
     Bitboards::init();
 
-    Position pos("r3kb1r/pp1n1p1p/1q2p2p/3p4/8/1N6/PPPN1PPP/R2QR1K1 b kq - 2 12");
+    std::string line;
+    while (true) {
+        std::cout << "\nEnter FEN (or 'q' to quit, empty = startpos): ";
+        std::getline(std::cin, line);
 
-    auto start = steady_clock::now();
-    auto result = BitFish::get_best_move(pos, 5);
+        if (line == "q" || line == "quit") {
+            std::cout << "ByeBye!!!!!\n";
+            break;
+        }
 
-    auto end = steady_clock::now();
-    auto duration = duration_cast<milliseconds>(end - start).count();
+        std::string fen = line.empty() ? STARTING_POS_FEN : line;
 
-    std::cout << move_to_string (result.first) << " cp " << result.second <<  "\n";
-    std::cout << "search took : " << duration << "ms\n";
-    std::cout << "nps " << BitFish::nodes / duration * 1000 << "\n";
+        BitFish::position(fen);
+        
 
-    std::cout << "Endgame Weight: " << BitFish::eg_weight(pos) << "\n";
-    
+        std::cout << "Searching...\n";
+        BitFish::go(15, 100000);
+    }
 
     return 0;
 }
-
-

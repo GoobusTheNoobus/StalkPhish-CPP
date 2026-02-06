@@ -3,6 +3,9 @@
 #include <string>
 #include <string_view>
 #include "movegen.h"
+#include <chrono>
+
+using namespace std::chrono;
 
 namespace BitFish {
 
@@ -11,18 +14,20 @@ namespace BitFish {
     
     extern int current_depth;
     extern bool stop_flag;
-    extern uint64_t start_time;
-    extern uint64_t end_time;
+    extern steady_clock::time_point start_time;
     extern int max_time;
     extern uint64_t nodes;
+    extern Position current_pos;
 
-    void go (int depth=6, int max_time=1000);
+    void go (int depth_lim, int move_time);
     void stop ();
-    bool should_stop ();
+    bool should_stop () ;
     int minimax (Position& pos, int depth, int alpha, int beta);
     int qsearch (Position& pos, int depth, int alpha, int beta);
+    void position (std::string_view fen);
 
-    std::pair<Move, int> get_best_move (Position& pos, int max_depth);
+    std::pair<Move, int> get_best_move (Position& pos, int max_depth, Move pv);
+
 
     constexpr std::array<int, PIECE_NUM + 1> material = {
         100, 300, 320, 500, 900, 0, -100, -300, -320, -500, -900, 0, 0

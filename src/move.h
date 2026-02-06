@@ -96,6 +96,18 @@ struct MoveList {
         return list[index];
     }
 
+    // basic pv sort only now
+    inline void sort (Move move) {
+        for (int i = 0; i < size; ++i) {
+            if (list[i] == move) {
+                Move tmp = list[0];
+                list[i] = tmp;
+                list[0] = move;
+                return;
+            }
+        }
+    }
+
     inline void print () {
         for (int i = 0; i < size; i++) {
             std::cout << std::bitset<32>(list[i]) << ": " << move_to_string(list[i]) << ",\n";
