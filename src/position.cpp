@@ -1,3 +1,5 @@
+// ------------------------------------ BITFISH ---------------------------------------
+
 #include "position.h"
 #include "type.h"
 #include "bitboards.h"
@@ -25,21 +27,20 @@ Piece Position::piece_at(Square square) const {
 std::string Position::to_string() const {
     std::ostringstream string;
 
-    
-        string << "\n  +-----------------+\n";
-        for (int rank = 7; rank >= 0; rank--) {
-            string << rank + 1 << " | ";
-            for (int file = 0; file < 8; file++) {
-                int square = rank * 8 + file;
-                string << PIECE_TO_CHAR[piece_at(Square(rank << 3 | file))] << " ";
-            }
-            string << "|\n";
+    string << "\n  +-----------------+\n";
+    for (int rank = 7; rank >= 0; rank--) {
+        string << rank + 1 << " | ";
+        for (int file = 0; file < 8; file++) {
+            int square = rank * 8 + file;
+            string << PIECE_TO_CHAR[piece_at(Square(rank << 3 | file))] << " ";
         }
-        string << "  +-----------------+\n";
-        string << "    a b c d e f g h\n\n";
+        string << "|\n";
+    }
+    string << "  +-----------------+\n";
+    string << "    a b c d e f g h\n\n";
 
 
-    string << "\nSide to move: " << (game_info.side_to_move == WHITE ? "White": "Black");
+    string << "\nSide to move: " << (game_info.side_to_move == WHITE ? "White": "Black") << "\n";
     string << "Castling rights: \n";
     string << ((game_info.castling & WKS_RIGHT) != 0 ? "White Kingside\n" : "") << ((game_info.castling & WQS_RIGHT) != 0 ? "White Queenside\n" : "") << ((game_info.castling & BKS_RIGHT) != 0 ? "Black Kingside\n" : "") << ((game_info.castling & BQS_RIGHT) != 0 ? "Black Queenside\n" : "") << "\n\n";   
     string << "En Passant Square: " << (game_info.ep_square == NO_SQUARE ? "-" : square_to_str(game_info.ep_square)) << "\n";

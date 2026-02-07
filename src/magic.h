@@ -1,9 +1,11 @@
+// ------------------------------------ BITFISH ---------------------------------------
 
 #pragma once
 
 #include <array>
 #include "constants.h"
 #include "type.h"
+
 
 constexpr std::array<uint64_t, BOARD_SIZE> rook_magic = {
     0xa8002c000108020ULL,

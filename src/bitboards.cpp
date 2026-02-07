@@ -1,3 +1,5 @@
+// ------------------------------------ BITFISH ---------------------------------------
+
 #include "bitboards.h"
 #include "type.h"
 #include "magic.h"

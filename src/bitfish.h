@@ -1,16 +1,19 @@
+// ------------------------------------ BITFISH ---------------------------------------
+
 #pragma once
 #include "position.h"
 #include <string>
 #include <string_view>
 #include "movegen.h"
 #include <chrono>
+#include <cstring>
 
 using namespace std::chrono;
 
 namespace BitFish {
 
-    constexpr int MAX_DEPTH = 15;
-    constexpr int MAX_QDEPTH = 10;
+    constexpr int MAX_DEPTH = 16;
+    constexpr int MAX_QDEPTH = 20;
     
     extern int current_depth;
     extern bool stop_flag;
@@ -19,9 +22,24 @@ namespace BitFish {
     extern uint64_t nodes;
     extern Position current_pos;
 
+    extern std::array<std::array<Move, 2>, MAX_DEPTH> killers;
+
+    inline void reset_killers () {
+        std::memset(killers.begin(), NO_MOVE, sizeof(killers));
+    }
+
+    inline void store_killer (Move move, int ply) {
+        if (killers[ply][0] == move) return;
+        if (killers[ply][1] == move) return;
+
+        // shift
+        killers[ply][1] = killers[ply][0];
+        killers[ply][0] = move;
+    }
     
 
     void go (int depth_lim, int move_time);
+    Move iterative_deepen (int move_time);
     void stop ();
     bool should_stop () ;
     int minimax (Position& pos, int depth, int alpha, int beta);
@@ -34,7 +52,7 @@ namespace BitFish {
     
     constexpr std::array<int, BOARD_SIZE> pawn_table_mg = {
         0,  0,  0,  0,  0,  0,  0,  0,
-        5, 10, 10,-15,-15, 10, 10,  5,
+        5, 10, 10,-30,-30, 10, 10,  5,
         5,  0,-10,  0,  0,-10,  0,  5,
         0,  0, 10, 30, 30, 10,  0,  0,
         5,  5, 10, 30, 30, 10,  5,  5,
@@ -45,7 +63,7 @@ namespace BitFish {
 
     constexpr std::array<int, BOARD_SIZE> pawn_table_eg = {
         0,  0,  0,   0,   0,  0,  0, 0,
-        5, 10, 10,  15,  15, 10, 10, 5,
+        5, 10, 10,  10,  10, 10, 10, 5,
         10, 15, 20,  25,  25, 20, 15, 10,
         20, 30, 35,  40,  40, 35, 30, 20,
         30, 45, 55,  60,  60, 55, 45, 30,
@@ -55,14 +73,14 @@ namespace BitFish {
     };
 
     constexpr std::array<int, BOARD_SIZE> knight_table = {
-        -50,-40,-30,-30,-30,-30,-40,-50,
-        -40,-20,  0,  0,  0,  0,-20,-40,
-        -30,  0, 0, 15, 15, 0,  0,-30,
-        -30,  5, 15, 20, 20, 15,  5,-30,
-        -30,  5, 15, 20, 20, 15,  5,-30,
-        -30,  0, 10, 15, 15, 10,  0,-30,
-        -40,-20,  0,  0,  0,  0,-20,-40,
-        -50,-40,-30,-30,-30,-30,-40,-50
+        -30,-20,-10,  0,  0,-10,-20,-30,
+        -20,-10,  0,  5,  5,  0,-10,-20,
+        -10,  0, 15, 10, 10, 15,  0,-10,
+        -10,  5, 10, 25, 25, 10,  5,-10,
+        -10,  5, 10, 25, 25, 10,  5,-10,
+        -10,  0, 15, 10, 10, 15,  0,-10,
+        -20,-10,  0,  5,  5,  0,-10,-20,
+        -30,-20,-10,  0,  0,-10,-20,-30
     };
 
     constexpr std::array<int, BOARD_SIZE> bishop_table = {

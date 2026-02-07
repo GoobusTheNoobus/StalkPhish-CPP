@@ -1,3 +1,5 @@
+// ------------------------------------ BITFISH ---------------------------------------
+
 #include "bitfish.h"
 
 using namespace std::chrono;
@@ -9,6 +11,8 @@ namespace BitFish {
     int max_time;
     uint64_t nodes;
     Position current_pos;
+
+    std::array<std::array<Move, 2>, MAX_DEPTH> killers;
 
     bool should_stop() {
         if (stop_flag) return true;
@@ -35,7 +39,7 @@ namespace BitFish {
             __builtin_popcountll(pos.get_bitboard(W_ROOK)   | pos.get_bitboard(B_ROOK))   +
             __builtin_popcountll(pos.get_bitboard(W_QUEEN)  | pos.get_bitboard(B_QUEEN));
         
-        const int max_phase = 16;
+        const int max_phase = 14;
 
         return 1 - std::min (1.0f, static_cast<float> (phase) / max_phase);
     }
@@ -94,6 +98,12 @@ namespace BitFish {
             score += material[piece];
         }
 
+        score += ((WKS_RIGHT & pos.game_info.castling) >> 0) * 20;
+        score += ((WQS_RIGHT & pos.game_info.castling) >> 1) * 20;
+        score -= ((BKS_RIGHT & pos.game_info.castling) >> 2) * 20;
+        score -= ((BQS_RIGHT & pos.game_info.castling) >> 3) * 20;
+
+
         score = std::max(-MAX_CP, std::min(score, MAX_CP));
         score = (pos.game_info.side_to_move == WHITE) ? score: -score;
 
@@ -119,7 +129,7 @@ namespace BitFish {
         alpha = std::max (alpha, stand_pat);
 
         MoveList moves = MoveGen::generate_moves (pos);
-        moves.sort(-1);
+        moves.sort(NO_MOVE);
 
         Color side_moving = pos.game_info.side_to_move;
 
@@ -170,6 +180,8 @@ namespace BitFish {
     // no qsearch yet. keyword yet
     int minimax (Position& pos, int depth, int alpha, int beta) {
         nodes++;
+
+        
         if (should_stop ()) return 0;
 
         if (depth <= 0) {
@@ -177,8 +189,10 @@ namespace BitFish {
             return qsearch(pos, MAX_QDEPTH, alpha, beta);
         }
 
+        int ply_from_root = current_depth - depth;
+
         MoveList moves = MoveGen::generate_moves(pos);
-        moves.sort(-1);
+        moves.sort(NO_MOVE, killers[ply_from_root][0], killers[ply_from_root][1]);
 
         Color color_moving = pos.game_info.side_to_move;
 
@@ -220,7 +234,13 @@ namespace BitFish {
             alpha = std::max(alpha, score);
 
             // beta cutoff
-            if (alpha >= beta) break;
+            if (alpha >= beta) {
+
+                if (CAPTURED(move) == NO_PIECE)
+                store_killer(move, ply_from_root);
+
+                break;
+            };
 
             if (nodes % 1024 == 0 && should_stop ()) {
                 
@@ -230,8 +250,8 @@ namespace BitFish {
         }
 
         if (legal_moves == 0) {
-            if (pos.is_in_check(color_moving)) return -(MATE_EVAL - (current_depth - depth));
-            if (pos.is_in_check(opposite(color_moving))) return MATE_EVAL - (current_depth - depth);
+            if (pos.is_in_check(color_moving)) return - (MATE_EVAL - ply_from_root);
+            if (pos.is_in_check(opposite(color_moving))) return MATE_EVAL - ply_from_root;
             return 0;
         }
 
@@ -277,7 +297,7 @@ namespace BitFish {
                 
             }
 
-            if (stop_flag) return {0, -1};
+            if (stop_flag) return {0, NO_MOVE};
 
             if (score > best_score) {
                 best_score = score;
@@ -295,10 +315,15 @@ namespace BitFish {
     }
 
     void go (int depth_lim, int move_time) {
+
+        reset_killers();
+
         nodes = 0;
         stop_flag = false;
         start_time = steady_clock::now();
         max_time = move_time;
+
+        bool mate_found = false;
 
         Move best_move = NO_MOVE;
         int eval;
@@ -307,18 +332,25 @@ namespace BitFish {
         int local_nodes = 0;
 
         for (int depth = 1; depth < depth_lim; ++depth) {
-            auto result = get_best_move(current_pos, depth, best_move);
 
+            
+            if (!mate_found){
+                auto result = get_best_move(current_pos, depth, best_move);
+            
+                if (should_stop()) {
+                    break;
+                }
 
-
-            if (should_stop()) {
-                break;
+                eval = result.second * multiplier;
+                best_move = result.first;
             }
             
             
-            eval = result.second * multiplier;
-            best_move = result.first;
-            
+
+            if (std::abs(eval) > MAX_CP) {
+                mate_found = true;
+            }
+
             auto elapsed = duration_cast<microseconds> (steady_clock::now() - start_time).count();
 
             std::cout << "info depth " << depth << " score cp " << (eval) << " nodes " << (nodes - local_nodes) << " nps " << (nodes * 1000000 / elapsed) << " time " << (elapsed / 1000) << " pv " << move_to_string (best_move) << "\n"; 
@@ -327,6 +359,54 @@ namespace BitFish {
         }
 
         std::cout << "bestmove " << move_to_string (best_move);
+        
+        
+
+    }
+
+    Move iterative_deepen (int move_time) {
+
+        reset_killers();
+
+        nodes = 0;
+        stop_flag = false;
+        start_time = steady_clock::now();
+        max_time = move_time;
+
+        bool mate_found = false;
+
+        Move best_move = NO_MOVE;
+        int eval;
+        int multiplier = (current_pos.game_info.side_to_move == WHITE) ? 1: -1;
+
+        int local_nodes = 0;
+
+        for (int depth = 1; depth < MAX_DEPTH; ++depth) {
+
+            
+            if (!mate_found){
+                auto result = get_best_move(current_pos, depth, best_move);
+            
+                if (should_stop()) {
+                    break;
+                }
+
+                eval = result.second * multiplier;
+                best_move = result.first;
+            }
+            
+            
+
+            if (std::abs(eval) > MAX_CP) {
+                mate_found = true;
+            }
+
+            
+
+            
+        }
+
+        return best_move;
         
         
 

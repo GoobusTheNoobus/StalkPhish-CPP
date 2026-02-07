@@ -1,3 +1,5 @@
+// ------------------------------------ BITFISH ---------------------------------------
+
 #pragma once
 #include "type.h"
 #include "position.h"
@@ -97,14 +99,42 @@ struct MoveList {
         return list[index];
     }
 
-    // basic pv sort only now
-    inline void sort (Move move) {
-        std::stable_sort (list.begin(), list.begin() + size, [move](Move a, Move b){
-            int score_a = (a == move) ? (std::abs(material[CAPTURED(a)]) - std::abs(material[MOVED(a)])) : 10000;
-            int score_b = (b == move) ? (std::abs(material[CAPTURED(b)]) - std::abs(material[MOVED(b)])) : 10000;
+    // pv sort with mvv - lva
+    inline void sort (Move move, Move killer1 = NO_MOVE, Move killer2 = NO_MOVE) {
+        std::sort (list.begin(), list.begin() + size, [move, killer1, killer2](Move a, Move b){
 
-            if (FLAG(a) >= MOVE_NPROMO_FLAG) score_a += promo_flag_bonus[FLAG(a) - MOVE_NPROMO_FLAG];
-            if (FLAG(b) >= MOVE_NPROMO_FLAG) score_b += promo_flag_bonus[FLAG(b) - MOVE_NPROMO_FLAG];
+            int score_a;
+            int score_b;
+
+            if (a == move) {
+                score_a = 10000;
+            } else if (a == killer1) {
+                score_a = 9900;
+            } else if (a == killer2) {
+                score_a = 9800;
+            } else if (CAPTURED(a) != NO_PIECE){
+                score_a = std::abs(material[CAPTURED(a)]) - std::abs(material[MOVED(a)]);
+                if (FLAG(a) >= MOVE_NPROMO_FLAG) score_a += promo_flag_bonus[FLAG(a) - MOVE_NPROMO_FLAG];
+            } else {
+                if (FLAG(a) >= MOVE_NPROMO_FLAG) score_a += promo_flag_bonus[FLAG(a) - MOVE_NPROMO_FLAG];
+                else score_a = -10000;
+            }
+
+            if (b == move) {
+                score_b = 10000;
+            } else if (b == killer1) {
+                score_b = 9900;
+            } else if (b == killer2) {
+                score_b = 9800;
+            } else if (CAPTURED(b) != NO_PIECE){
+                score_b = std::abs(material[CAPTURED(b)]) - std::abs(material[MOVED(b)]);
+                if (FLAG(b) >= MOVE_NPROMO_FLAG) score_b += promo_flag_bonus[FLAG(b) - MOVE_NPROMO_FLAG];
+            } else {
+                if (FLAG(b) >= MOVE_NPROMO_FLAG) score_b += promo_flag_bonus[FLAG(b) - MOVE_NPROMO_FLAG];
+                else score_b = -10000;
+            }
+
+            
             
             return score_a > score_b;
         });

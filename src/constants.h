@@ -1,3 +1,5 @@
+// ------------------------------------ BITFISH ---------------------------------------
+
 #pragma once
 #include <string_view>
 #include <array>
@@ -62,4 +64,7 @@ constexpr int MATE_EVAL = 30000;
 constexpr int INF = 30001;
 constexpr int MAX_CP = 10000;
 
+constexpr std::array<std::array<int, 6>, 6> mvv_lva = {
+
+};
 

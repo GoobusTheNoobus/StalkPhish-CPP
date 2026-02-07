@@ -1,6 +1,6 @@
+// ------------------------------------ BITFISH ---------------------------------------
+
 #include "movegen.h"
-
-
 
 
 void MoveGen::generate_pawn_moves (const Position& pos, MoveList& list) {
@@ -264,6 +264,7 @@ void MoveGen::generate_rook_moves (const Position& pos, MoveList& list) {
         pieces &= pieces - 1;
     }
 }
+
 
 void MoveGen::generate_queen_moves (const Position& pos, MoveList& list) {
     Color us = pos.game_info.side_to_move;
