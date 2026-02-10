@@ -159,8 +159,8 @@ namespace BitFish {
 
         
 
-        for (int i = 0; i < moves.size; ++i) {
-            Move move = moves[i];
+        for (Move move: moves) {
+            
 
             bool is_noisy = (CAPTURED(move) != NO_PIECE) || (FLAG(move) >= MOVE_NPROMO_FLAG);
             
@@ -239,13 +239,8 @@ namespace BitFish {
             }
         }
         
-        for (int i = 0; i < moves.size; i++) {
+        for (Move move: moves) {
             
-            
-
-            Move move = moves[i];
-
-
             
             pos.make_move(move);
 
@@ -313,10 +308,10 @@ namespace BitFish {
 
         
 
-        for (int i = 0; i < moves.size; ++i) {
-            Move m = moves[i];
+        for (Move move: moves) {
+            
 
-            pos.make_move(m);
+            pos.make_move(move);
 
             if (pos.is_in_check(side_moving)) {
                 pos.undo_move();
@@ -338,7 +333,7 @@ namespace BitFish {
 
             if (score > best_score) {
                 best_score = score;
-                best_move = m;
+                best_move = move;
             }
 
         }

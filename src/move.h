@@ -74,6 +74,22 @@ struct MoveList {
     std::array<Move, 256> list;
     int size = 0;
 
+    inline Move* begin() {
+        return list.data();
+    }
+
+    inline Move* end() {
+        return list.data() + size;
+    }
+
+    inline const Move* begin() const {
+        return list.data();
+    }
+
+    inline const Move* end() const {
+        return list.data() + size;
+    }
+
     inline void push_back (Move move) {
         list[size++] = move;
     }
