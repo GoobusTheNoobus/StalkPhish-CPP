@@ -66,5 +66,11 @@ constexpr int MAX_CP = 10000;
 
 const std::string VERSION = "v0.4.0";
 
+constexpr int KINGSIDE_CASTLING_BONUS = 8;
+constexpr int QUEENSIDE_CASTLING_BONUS = 6;
 
+constexpr int KNIGHT_MOB_BONUS = 4;
+constexpr int BISHOP_MOB_BONUS = 3;
+constexpr int ROOK_MOB_BONUS = 2;
+constexpr int QUEEN_MOB_BONUS = 2;
 

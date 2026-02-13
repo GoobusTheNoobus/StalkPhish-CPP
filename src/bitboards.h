@@ -70,6 +70,9 @@ namespace Bitboards {
     extern std::array<std::array<Bitboard, BISHOP_BLOCKER_COMBINATIONS>, BOARD_SIZE> bishop_table;
     extern std::array<std::array<Bitboard, ROOK_BLOCKER_COMBINATIONS>, BOARD_SIZE> rook_table;
 
+    // passed pawn tables
+    extern std::array<std::array<Bitboard, BOARD_SIZE>, COLOR_NUM> passed_pawn_table;
+
     // lookups
     Bitboard get_rook_attacks (Square square, Bitboard occupancy);
     Bitboard get_bishop_attacks (Square square, Bitboard occupancy);

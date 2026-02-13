@@ -86,6 +86,9 @@ namespace BitFish {
         float endgame = eg_weight(pos);
 
         int score = 0;
+        int material_eval = 0;
+        int castling_bonus = 0;
+        int mobility = 0;
 
         for (int square = 0; square < BOARD_SIZE; ++square) {
             Piece piece = pos.piece_at(Square(square));
@@ -95,51 +98,60 @@ namespace BitFish {
             switch (piece)
             {
             case W_PAWN:
-                score += static_cast<int>(endgame * pawn_table_eg[square] + (1 - endgame) * pawn_table_mg[square]);
+                material_eval += static_cast<int>(endgame * pawn_table_eg[square] + (1 - endgame) * pawn_table_mg[square]);
                 break;
             case B_PAWN:
-                score -= static_cast<int>(endgame * pawn_table_eg[63 - square] + (1 - endgame) * pawn_table_mg[63 - square]);
+                material_eval -= static_cast<int>(endgame * pawn_table_eg[63 - square] + (1 - endgame) * pawn_table_mg[63 - square]);
+                
                 break;
             case W_KNIGHT:
-                score += knight_table[square];
+                material_eval += knight_table[square];
+                mobility += __builtin_popcountll(Bitboards::get_knight_attacks(Square(square))) * KNIGHT_MOB_BONUS;
                 break;
             case B_KNIGHT:
-                score -= knight_table[63 - square];
+                material_eval -= knight_table[63 - square];
+                mobility -= __builtin_popcountll(Bitboards::get_knight_attacks(Square(square))) * KNIGHT_MOB_BONUS;
                 break;
             case W_BISHOP:
-                score += bishop_table[square];
+                material_eval += bishop_table[square];
+                mobility += __builtin_popcountll(Bitboards::get_bishop_attacks(Square(square), pos.board.occupancy)) * BISHOP_MOB_BONUS;
                 break;
             case B_BISHOP:
-                score -= bishop_table[63 - square];
+                material_eval -= bishop_table[63 - square];
+                mobility -= __builtin_popcountll(Bitboards::get_bishop_attacks(Square(square), pos.board.occupancy)) * BISHOP_MOB_BONUS;
                 break;
             case W_ROOK:
-                score += rook_table[square];
+                material_eval += rook_table[square];
+                mobility += __builtin_popcountll(Bitboards::get_rook_attacks(Square(square), pos.board.occupancy)) * ROOK_MOB_BONUS;
                 break;
             case B_ROOK:
-                score -= rook_table[63 - square];
+                material_eval -= rook_table[63 - square];
+                mobility -= __builtin_popcountll(Bitboards::get_rook_attacks(Square(square), pos.board.occupancy)) * ROOK_MOB_BONUS;
                 break;
             case W_QUEEN:
-                score += queen_table[square];
+                material_eval += queen_table[square];
+                mobility += __builtin_popcountll(Bitboards::get_rook_attacks(Square(square), pos.board.occupancy) | Bitboards::get_bishop_attacks(Square(square), pos.board.occupancy)) * QUEEN_MOB_BONUS;
                 break;
             case B_QUEEN:
-                score -= queen_table[63 - square];
+                material_eval -= queen_table[63 - square];
+                mobility -= __builtin_popcountll(Bitboards::get_rook_attacks(Square(square), pos.board.occupancy) | Bitboards::get_bishop_attacks(Square(square), pos.board.occupancy)) * QUEEN_MOB_BONUS;
                 break;
             case W_KING:
-                score += static_cast<int>(endgame * king_table_eg[square] + (1 - endgame) * king_table_mg[square]);
+                material_eval += static_cast<int>(endgame * king_table_eg[square] + (1 - endgame) * king_table_mg[square]);
                 break;
             case B_KING:
-                score -= static_cast<int>(endgame * king_table_eg[63 - square] + (1 - endgame) * king_table_mg[63 - square]);
+                material_eval -= static_cast<int>(endgame * king_table_eg[63 - square] + (1 - endgame) * king_table_mg[63 - square]);
             default:
                 break;
             }
 
-            score += material[piece];
+            material_eval += material[piece];
         }
 
-        score += ((WKS_RIGHT & pos.game_info.castling) >> 0) * 8;
-        score += ((WQS_RIGHT & pos.game_info.castling) >> 1) * 6;
-        score -= ((BKS_RIGHT & pos.game_info.castling) >> 2) * 8;
-        score -= ((BQS_RIGHT & pos.game_info.castling) >> 3) * 6;
+        castling_bonus += ((WKS_RIGHT & pos.game_info.castling) >> 0) * 8;
+        castling_bonus += ((WQS_RIGHT & pos.game_info.castling) >> 1) * 6;
+        castling_bonus -= ((BKS_RIGHT & pos.game_info.castling) >> 2) * 8;
+        castling_bonus -= ((BQS_RIGHT & pos.game_info.castling) >> 3) * 6;
 
         if (endgame < 0.5) {
             if (pos.piece_at(E3) == W_BISHOP && pos.piece_at(E2) == W_PAWN) {
@@ -156,6 +168,7 @@ namespace BitFish {
             }
         }
 
+        score = castling_bonus + material_eval + mobility;
 
         score = std::max(-MAX_CP, std::min(score, MAX_CP));
         score = (pos.game_info.side_to_move == WHITE) ? score: -score;
