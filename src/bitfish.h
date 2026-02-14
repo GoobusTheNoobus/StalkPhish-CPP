@@ -40,8 +40,7 @@ class HashTable {
 
 namespace BitFish {
 
-    constexpr int MAX_DEPTH = 16;
-    constexpr int MAX_QDEPTH = 20;
+    
     
     extern int current_depth;
     extern bool stop_flag;
@@ -68,7 +67,7 @@ namespace BitFish {
     }
     
 
-    void go (int depth_lim = MAX_DEPTH, int move_time = 100000);
+    void go (int depth_lim, int move_time);
     Move iterative_deepen (int move_time);
     void stop ();
     bool should_stop () ;

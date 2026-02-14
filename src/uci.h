@@ -12,7 +12,7 @@ namespace UCI {
     void info_string (const std::string& message);
     
     // commands
-    void parse_position(const std::string& fen, const std::vector<std::string>& moves);
+    void parse_position(const std::string& command);
     void parse_go(const std::string& command);
     void uci();
     void isready();
@@ -20,6 +20,7 @@ namespace UCI {
 
     // as a rip off of stockfish, i must include these stockfish exclusive command
     void d(); 
-    void flip();
     void eval();
+
+    void loop();
 }

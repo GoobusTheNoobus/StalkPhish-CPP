@@ -11,6 +11,7 @@
 #include "position.h"
 #include "move.h"
 #include "bitfish.h"
+#include "uci.h"
 
 using namespace std::chrono;
 
@@ -36,16 +37,9 @@ void play_self () {
 
 int main() {
     Bitboards::init();
-    std::cout << "BitFish " << VERSION << "\n";
+    std::cout << "BitFish " << VERSION << " by GoobusTheNoobus\n" << std::flush;
 
-    while (true) {
-        std::string str;
-        std::getline(std::cin, str);
-
-        BitFish::current_pos.parse_fen(str);
-
-        BitFish::go(16, 50000);
-    }
+    UCI::loop();
 
     
 

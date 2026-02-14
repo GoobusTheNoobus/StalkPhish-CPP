@@ -1,6 +1,10 @@
 #include "uci.h"
 #include "bitfish.h"
 #include "movegen.h"
+#include "constants.h"
+
+#include <sstream>
+#include <string>
 
 namespace {
     Move parse_move (const Position& pos, const std::string& str) {
@@ -24,20 +28,21 @@ void UCI::info_depth (int depth, int eval, uint64_t nodes, uint64_t elapsed, con
         std::cout << move_to_string(move) << " ";
     }
 
-    std::cout << "\n"; 
+    std::cout << "\n" << std::flush; 
 }
 
 void UCI::info_string (const std::string& message) {
-    std::cout << "info string " << message;
+    std::cout << "info string " << message << std::endl << std::flush;
 }
 
 void UCI::uci () {
-    std::cout << "id name BitFish " << VERSION << "\n";
-    std::cout << "id author GoobusTheNoobus\n";
+    std::cout << "id name BitFish " << VERSION << std::endl;
+    std::cout << "id author GoobusTheNoobus" << std::endl;
+    std::cout << "uciok" << std::endl << std::flush;
 }
 
 void UCI::isready () {
-    std::cout << "readyok\n";
+    std::cout << "readyok" << std::endl << std::flush;
 }
 
 void UCI::ucinewgame () {
@@ -45,10 +50,142 @@ void UCI::ucinewgame () {
     BitFish::reset_killers();
 }
 
-void UCI::parse_position (const std::string& fen, const std::vector<std::string>& moves) {
-    BitFish::position(fen);
+void UCI::parse_position (const std::string& command) {
+    std::istringstream iss (command);
+
+    std::string token;
+
     
-    for (const std::string& str: moves) {
-        BitFish::current_pos.make_move(parse_move(BitFish::current_pos, str));
+
+    // position
+    iss >> token;
+
+    // startpos/fen
+    iss >> token;
+
+    if (token == "startpos") {
+        BitFish::position(STARTING_POS_FEN);
+
+        iss >> token;
+
+        if (token == "moves") {
+            while (iss >> token) {
+                BitFish::current_pos.make_move(parse_move(BitFish::current_pos, token));
+            }
+        } 
+    } else if (token == "fen") {
+        std::string fen;
+
+        while ((iss >> token) && token != "moves") {
+            fen += token + " ";
+        }
+
+        try {
+            BitFish::position(fen);
+        } catch (std::exception e) {
+            info_string("Error parsing fen");
+        }
+
+        if (token == "moves") {
+            while (iss >> token) {
+                BitFish::current_pos.make_move(parse_move(BitFish::current_pos, token));
+            }
+        }
+    }
+
+
+    
+}
+
+void UCI::parse_go(const std::string& command) {
+    std::istringstream iss (command);
+    std::string token;
+
+    int depth = MAX_DEPTH;
+    int movetime = 0;
+
+    int wtime = 0;
+    int btime = 0;
+
+    int winc = 0;
+    int binc = 0;
+    
+    // skip go
+    iss >> token;
+
+    while (iss >> token) {
+        if (token == "depth") {
+            iss >> depth;
+        } else if (token == "movetime") {
+            iss >> movetime;
+        } else if (token == "wtime") {
+            iss >> wtime;
+        } else if (token == "btime") {
+            iss >> btime;
+        } else if (token == "winc") {
+            iss >> winc;
+        } else if (token == "binc") {
+            iss >> binc;
+        }
+    }
+
+    int time_limit = 0;
+    
+    if (movetime > 0) {
+        time_limit = movetime;
+    } else if (wtime > 0 || btime > 0) {
+        
+        int our_time = (BitFish::current_pos.game_info.side_to_move == WHITE) ? wtime + winc  : btime + binc ;
+        
+        // use 1/50 of remaining time
+        if (our_time > 100) {
+            time_limit = std::min(our_time - 100, our_time / 50);
+            time_limit = std::max(100, time_limit);  
+        }
+    }
+
+    BitFish::go(depth, time_limit);
+    
+}
+
+void UCI::d () {
+    std::cout << BitFish::current_pos.to_string() << "\n" << std::flush;
+}
+
+void UCI::eval () {
+    std::cout << BitFish::current_pos.to_string() << "\n";
+    std::cout << "Current evaluation: " << BitFish::evaluate(BitFish::current_pos) << std::flush;
+}
+
+void UCI::loop () {
+    while (true) {
+        std::string string;
+        std::getline(std::cin, string);
+
+        std::istringstream iss (string);
+        std::string command;
+
+        iss >> command;
+
+        if (command == "go") {
+            parse_go (string);
+        } else if (command == "position") {
+            parse_position(string);
+        } else if (command == "uci") {
+            uci ();
+        } else if (command == "isready") {
+            isready();
+        } else if (command == "ucinewgame") {
+            ucinewgame();
+        } else if (command == "d") {
+            d();
+        } else if (command == "eval") {
+            eval();
+        } else if (command == "quit") {
+            break;
+        } 
+        else {
+            info_string("invalid command");
+        }
     }
 }
